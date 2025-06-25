@@ -1,0 +1,40 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlphttp/traces:
+    endpoint: http://tempo:4318
+  otlphttp/logs:
+    endpoint: http://loki:3100/otlp
+  prometheusremotewrite:
+    # endpoint: http://prometheus.example.com:9411/api/prom/push
+    # When using the official Prometheus (running via Docker)
+    endpoint: 'http://prometheus:9090/api/v1/write'
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheusremotewrite]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/traces]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      # debug | loki
+      exporters: [debug,otlphttp/logs]
