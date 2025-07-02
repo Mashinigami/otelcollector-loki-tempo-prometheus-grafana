@@ -32,12 +32,10 @@ services:
       - ./tempo.yaml:/etc/tempo.yaml
       - ./tempo-data:/var/tempo
     ports:
-      - "14268:14268"  # jaeger ingest
       - "3200:3200"   # tempo
       - "9095:9095" # tempo grpc
-      - "9411:9411"   # zipkin
     expose:
-      # - "4317"
+      - "4317"
       - "4318"
     networks:
       - internal-network
@@ -57,14 +55,13 @@ services:
     image: prom/prometheus:latest
     command:
       - --config.file=/etc/prometheus.yaml
-      - --web.enable-remote-write-receiver
-      - --enable-feature=exemplar-storage
       - --enable-feature=native-histograms
     volumes:
       - ./prometheus.yaml:/etc/prometheus.yaml
     ports:
       - "9090:9090"
     networks:
+      - external-network
       - internal-network
 
   grafana:
@@ -86,9 +83,10 @@ services:
   collector:
     image: otel/opentelemetry-collector-contrib:0.128.0
     ports:
-      # - "4317:4317"
+      - "4317:4317"
       - "4318:4318"
-      - "8090"
+      - "8888:8888"
+      - "8889:8889"
     volumes:
       - ./collector.yaml:/etc/otelcol-contrib/config.yaml
     networks:
